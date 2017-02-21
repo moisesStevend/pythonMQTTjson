@@ -1,0 +1,51 @@
+#!/usr/bin/env python
+import paho.mqtt.client as mqtt
+import time
+import serial
+import json
+import numpy as np
+import cv2
+
+def on_connect(client, userdata, flags, rc):
+	print("Empezamos a conectarnos con calidad "+str(rc))
+
+class Envio_plot(object):
+    def __init__(self):
+        try:
+            self.client = mqtt.Client()
+            self.client.connect("10.10.50.58",1883,60)
+            self.client.loop_start()
+            self.client.on_connect = on_connect
+        except:
+            print "no se pudo conectar al broker"
+
+    def publicar(self, topico,mensaje):
+        self.client.publish(topico, mensaje)
+
+    def terminar(self):
+        self.client.disconnect()
+        
+try:
+	img=cv2.imread("img1.jpg",0)
+	mi_envio=Envio_plot()
+	#mapeo=[45,67,78.90,45,67.89]
+	mapeo=img.tolist()
+	"""
+	img=np.loadtxt("./testS.out")
+	cv2.imshow("messi",img)
+	cv2.waitKey(0)
+	cv2.destroyAllWindows()	
+	"""
+	
+	data={
+		"cabecera": json.dumps(mapeo)
+		#"cabecera": json.dumps([[1,2,3],[4,5,6]])
+	}
+	#while(1):
+	mi_envio.publicar('data_sin', json.dumps(data))
+	#mi_envio.publicar('data_sin', json.dumps(data))
+	#mi_envio.publicar('data_sin', json.dumps(data))
+	#np.savetxt("testS.out",img)
+
+except:
+	print "No se conecto"
